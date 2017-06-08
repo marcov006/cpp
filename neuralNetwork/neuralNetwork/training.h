@@ -14,7 +14,7 @@ public:
 	// returns the number of input values read from the file:
 	unsigned getNextInputs(vector<double> &inputVals);
 	unsigned getTargetOutputs(vector<double> &targetOutputVals);
-	void showVectorVals(string label, vector<double> &v);
+	void showVectorVals(string label, vector<double> &v, bool printOut);
 
 private:
 	ifstream m_trainingDataFile;

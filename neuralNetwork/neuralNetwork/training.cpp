@@ -76,26 +76,28 @@ TrainingData::TrainingData(const string filename, const string filename2)
 	m_trainingDataFile.open(filename);
 	m_learningDataFile.open(filename2);
 
-	if (m_trainingDataFile.is_open())
-		cout << "ok. " << endl;
-	else
-		cout << "pas bon ca." <<endl;
+	//if (m_trainingDataFile.is_open())
+		//cout << "ok. " << endl;
+	//else
+		//cout << "pas bon ca." <<endl;
 
-	if (m_learningDataFile.is_open())
-		cout << "ok. " << endl;
-	else
-		cout << "pas bon ca." <<endl;
+	//if (m_learningDataFile.is_open())
+		//cout << "ok. " << endl;
+	//else
+		//cout << "pas bon ca." <<endl;
 }
 
-void TrainingData::showVectorVals(string label, vector<double> &v)
+void TrainingData::showVectorVals(string label, vector<double> &v, bool printOut)
 {
-	cout << label << " ";
-	m_learningDataFile << label << " " << endl;
+	if (printOut) {
+		cout << label << " ";
+		m_learningDataFile << label << " " << endl;
 
-	for (unsigned i = 0; i < v.size(); i++) {
-		cout << v[i] << " ";
-		m_learningDataFile << v[i] << " ";
+		for (unsigned i = 0; i < v.size(); i++) {
+			cout << v[i] << " ";
+			m_learningDataFile << v[i] << " ";
+		}
+		cout << endl;
+		m_learningDataFile << endl;
 	}
-	cout << endl;
-	m_learningDataFile << endl;
 }

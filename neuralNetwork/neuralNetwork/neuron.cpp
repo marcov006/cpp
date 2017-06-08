@@ -84,7 +84,7 @@ Neuron::Neuron(unsigned numOutputs, unsigned myIndex)
 		connection.deltaWeight = 0.0;
 
 		m_outputWeights.push_back(connection);
-		cout << "Neuron connection " << c << " has a random weight of " << m_outputWeights.back().weight << endl;
+		// cout << "Neuron connection " << c << " has a random weight of " << m_outputWeights.back().weight << endl;
 	}
 
 	m_myIndex = myIndex;

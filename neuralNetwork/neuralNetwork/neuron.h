@@ -21,10 +21,10 @@ public:
 	void calcOutputGradients(double targetVal);
 	void calcHiddenGradients(const Layer &nextLayer);
 	void updateInputWeights(Layer &prevLayer);
-	
-private:
 	static double eta; // [0.0..1.0] overall net training rate
 	static double alpha; // [0.0..n] mulitplier of last weight change (momentum)
+	
+private:
 	static double transferFunction(double x);
 	static double transferFunctionDerivative(double x);
 	static double randomWeight(void) { return (rand() / double(RAND_MAX)); }
