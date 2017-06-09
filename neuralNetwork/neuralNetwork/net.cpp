@@ -109,8 +109,8 @@ void Net::printNetwork(const vector<unsigned> &topology, const double eta, const
 	cout << string("eta: ") << eta << endl;
 	m_learningDataFile << string("eta: ") << eta << endl;
 
-	cout << string("alpha: ") << eta << endl;
-	m_learningDataFile << string("alpha: ") << eta << endl;
+	cout << string("alpha: ") << alpha << endl;
+	m_learningDataFile << string("alpha: ") << alpha << endl;
 
 	for (unsigned layerNum = 0; layerNum < numLayers; layerNum++) {
 		for (unsigned neuronNum = 0; neuronNum < m_layers[layerNum].size(); neuronNum++) {
@@ -270,24 +270,26 @@ void Net::setNetworkWeights(const vector<unsigned> &topology)
 			// print weight and delta weight for each Neuron in the layer
 			unsigned numOutputs = (layerNum == topology.size()-1)? 0 : topology[layerNum+1];
 			for (unsigned connection = 0; connection < numOutputs; connection++) {
-				Connection neuronConnection;
-				getNetworkWeights(layerNum, neuronNum, connection, neuronConnection);
-				m_layers[layerNum][neuronNum].getNeuronWeights()[connection].weight = neuronConnection.weight;
-				m_layers[layerNum][neuronNum].getNeuronWeights()[connection].deltaWeight = neuronConnection.deltaWeight;
-				
+				Connection neuronWeight;
+				getNetworkWeights(layerNum, neuronNum, connection, neuronWeight);
+				m_layers[layerNum][neuronNum].setNeuronWeights(connection,neuronWeight);
+
 				stringstream stream;
 				string str;
 
 				stream << "Layer: " << layerNum << " Neuron: " << neuronNum 
 					<< " Connection: " << connection 
-					<< " Weight: " << neuronConnection.weight 
-					<< " deltaWeight: " << neuronConnection.deltaWeight;
+					<< " Weight: " << neuronWeight.weight 
+					<< " deltaWeight: " << neuronWeight.deltaWeight;
 
 				str = stream.str();
 				cout << str << endl;
 
 			} // loop for each neuron connection
 		} // loop for each neuron in the layer
+
+		// force the bias node's output value to 1.0. It's the last neuron created above
+		m_layers.back().back().setOutputVal(1.0);
 	} // loop for each layer in the net	
 }
 /*

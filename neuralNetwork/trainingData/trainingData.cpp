@@ -11,7 +11,7 @@
 
 using namespace std;
 
-int NUM_OF_DATA = 2000;
+int NUM_OF_DATA = 6000;
 
 int main(int argc, char* argv[])
 {
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 		for (int i = NUM_OF_DATA; i >= 0; i--) {
 			int n1 = (int)(2.0 * rand() / double(RAND_MAX));
 			int n2 = (int)(2.0 * rand() / double(RAND_MAX));
-			int t = n1 ^ n2; // should be 0 or 1
+			int t = n1 | n2; // should be 0 or 1
 			stream.str("");
 			stream << string("in: ") << n1 << string(".0 ") << n2 << string(".0");
 			str = stream.str();

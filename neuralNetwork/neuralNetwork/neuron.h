@@ -17,6 +17,7 @@ public:
 	void setOutputVal(double val) { m_outputVal = val; }
 	double getOutputVal(void) const { return m_outputVal; }
 	vector<Connection> getNeuronWeights(void) { return m_outputWeights; }
+	void setNeuronWeights(unsigned connectionNum, Connection neuronWeights) { m_outputWeights[connectionNum]=neuronWeights; }
 	void feedForward(const Layer &prevLayer);
 	void calcOutputGradients(double targetVal);
 	void calcHiddenGradients(const Layer &nextLayer);

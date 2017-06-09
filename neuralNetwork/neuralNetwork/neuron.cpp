@@ -7,6 +7,8 @@ void Neuron::updateInputWeights(Layer &prevLayer)
 
 	// cout << "updateInputWeights m_myIndex = " << m_myIndex << endl;
 
+	// cout << "updateInputWeights - eta = " << eta << " - alpha" << alpha <<endl;
+
 	for (unsigned n = 0; n < prevLayer.size(); n++) {
 		Neuron &neuron = prevLayer[n];
 		double oldDeltaWeight = neuron.m_outputWeights[m_myIndex].deltaWeight;
