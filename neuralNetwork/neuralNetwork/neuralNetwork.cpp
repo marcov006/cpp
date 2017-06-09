@@ -7,13 +7,39 @@
 #include "neuron.h"
 #include "net.h"
 
+//unsigned getTopology(vector<unsigned> &topology, const string filename)
+//{
+//string line;
+//string label;
+
+//ifstream m_learningFile;
+//m_learningFile.open(filename);
+
+//getline(m_learningFile, line);
+//stringstream ss(line);
+//ss >> label;
+
+//if (label.compare("topology:") != 0) {
+//	abort();	
+//}
+
+//while (!ss.eof()) {			
+//	unsigned n;
+//	ss >> n;
+//	topology.push_back(n);
+//}
+//	
+//return topology.size();
+//}
+
 int main(int argc, char *argv[])
 {
 	bool printOut = false;
-		
+
 	string trainingFile="";
 	string learningFile="";
-	
+	string nNmode = "training";
+
 	trainingFile = "C:\\temp\\trainingData.txt";
 	learningFile = "C:\\temp\\NeuralNetworkTrainingSequence.txt";
 
@@ -29,7 +55,7 @@ int main(int argc, char *argv[])
 				cout << "trainingFile: " << trainingFile << endl;
 			}
 			else if (arg_s.compare("-f2") == 0) {
-				learningFile = argv[i+1];
+				learningFile = (string)argv[i+1];
 				cout << "learningFile: " << learningFile << endl;
 			}
 			else if (arg_s.compare("-eta") == 0) {
@@ -40,6 +66,19 @@ int main(int argc, char *argv[])
 				Neuron::alpha = (double)atof(argv[i+1]);
 				cout << "alpha: " << Neuron::alpha << endl;
 			}
+			else if (arg_s.compare("-mode") == 0) {
+				nNmode = (string)argv[i+1];
+				cout << "nNmode: " << nNmode << endl;
+
+				if ((nNmode.compare("training") != 0) && (nNmode.compare("execute") != 0)) {
+					cout << "enter a valid value for -mode (training or execute) : " << endl;					
+					cin >> nNmode;
+					if ((nNmode.compare("training") != 0) && (nNmode.compare("execute") != 0)) {
+						cout << "t'es vraiment con, je peux plus rien pour toi ! Hasta luego" << endl;
+						return 0;
+					}
+				}
+			}
 			else {
 				// cout << "option : " << arg_s << " does not exist" << endl;
 			}
@@ -47,113 +86,232 @@ int main(int argc, char *argv[])
 	} else {
 		trainingFile = "C:\\temp\\trainingData.txt";
 		learningFile = "C:\\temp\\NeuralNetworkTrainingSequence.txt";
+		nNmode = "training";
 	}
 
-	cout << " trainingFile = " << trainingFile << endl;
-	cout << "eta: " << Neuron::eta << endl;
-	cout << "alpha: " << Neuron::alpha << endl;
+	cout << "mode: " << nNmode << endl;
+	cout << "trainingFile = " << trainingFile << endl;
+	cout << "learningFile = " << learningFile << endl;
 
-	for (double i = 0.0; i < 21.0; i++) {
-		for (double j = 0.0; j < 21.0; j++) {
-			TrainingData trainData(trainingFile, learningFile);
+	if (nNmode.compare("training") == 0) {
+		unsigned currentLearnIteration = UINT_MAX;
+		double currentETA = 0.0;
+		double currentALPHA = 0.0;
 
-			cout << "## Learning Loop count : " << (i*20)+j << endl;
+		unsigned bestAlphaIt = UINT_MAX;
+		double bestAlpha_ETA = 0.0;
+		double bestAlpha_ALPHA = 0.0;
 
-			Neuron::eta = i*0.05;
-			Neuron::alpha = j*0.05;
+		unsigned bestLearnIteration = UINT_MAX;
+		double bestETA = 0.0;
+		double bestALPHA = 0.0;
 
-			cout << ":eta:" << Neuron::eta ;
-			cout << ":alpha:" << Neuron::alpha;
+		TrainingData tData(trainingFile);
+		vector<unsigned> topo;
+		tData.getTopology(topo);
 
-			// e.g.,  {3, 2, 1}
-			vector<unsigned> topology;
-			trainData.getTopology(topology);
-			Net myNet(topology);
+		Net myCurrentLearntNet(topo, "nofile", false);
+		Net myBestAlphaLeantNet(topo, "nofile", false);
+		Net myBestLearntNet(topo, "nofile", false);
 
-			std::vector<double> inputVals, targetVals, resultVals;
-			int trainingPass = 0;
+		cout << "Learning .";
 
-			bool recordTrainingPass = false;
-			unsigned learnEndIteration = 0;
+		for (double i = 0.0; i < 21.0; i++) {
+			cout << ".";
+			for (double j = 0.0; j < 21.0; j++) {
+				TrainingData trainData(trainingFile);			
 
-			while (!trainData.isEof()) {
-				++trainingPass;
-		
-				double recentAverageError = 0.0;
+				Neuron::eta = i*0.05;
+				Neuron::alpha = j*0.05;
 
-				if (printOut) 
-					cout << endl << "Pass " << trainingPass <<  endl;
-
-				// Get new input data and feed it forward;
-				if (trainData.getNextInputs(inputVals) != topology[0]) {
-					break;
+				if (printOut) {
+					cout << "## Learning Loop count : " << (i*20)+j << endl;
+					cout << ":eta:" << Neuron::eta ;
+					cout << ":alpha:" << Neuron::alpha;
 				}
-				trainData.showVectorVals(": Inputs:", inputVals, printOut);
-				myNet.feedForward(inputVals);
 
-				// Collect the net's actual results:
-				myNet.getResuls(resultVals);
-				trainData.showVectorVals(": Outputs:", resultVals, printOut);
+				vector<unsigned> topology;
+				std::vector<double> inputVals, targetVals, resultVals;
+				int trainingPass = 0;
 
-				// Train the net what the output should have been:
-				trainData.getTargetOutputs(targetVals);
-				trainData.showVectorVals(": Targets:", targetVals, printOut);
-				assert(targetVals.size() == topology.back());
+				trainData.getTopology(topology);
+				Net myNet(topology, "nofile", false);				
 
-				myNet.backProp(targetVals);
+				bool recordTrainingPass = false;
 
-				recentAverageError = myNet.getRecentAverageError();
+				while (!trainData.isEof()) {
+					++trainingPass;
 
-				// report how well the training is working, averaged over recent samples:
-				if (printOut)
-					cout << "Net recent average error: "
+					double recentAverageError = 0.0;
+
+					if (printOut) 
+						cout << endl << "Pass " << trainingPass <<  endl;
+
+					// Get new input data and feed it forward;
+					if (trainData.getNextInputs(inputVals) != topology[0]) {
+						break;
+					}
+					trainData.showVectorVals(": Inputs:", inputVals, printOut);
+					myNet.feedForward(inputVals);
+
+					// Collect the net's actual results:
+					myNet.getResuls(resultVals);
+					trainData.showVectorVals(": Outputs:", resultVals, printOut);
+
+					// Train the net what the output should have been:
+					trainData.getTargetOutputs(targetVals);
+					trainData.showVectorVals(": Targets:", targetVals, printOut);
+					assert(targetVals.size() == topology.back());
+
+					myNet.backProp(targetVals);
+
+					recentAverageError = myNet.getRecentAverageError();
+
+					// report how well the training is working, averaged over recent samples:
+					if (printOut)
+						cout << "Net recent average error: "
 						<< recentAverageError << endl;
 
-				if (recordTrainingPass)
-					learnEndIteration = trainingPass;
+					if (recordTrainingPass) {
+						currentLearnIteration = trainingPass;
+						currentETA = Neuron::eta;
+						currentALPHA = Neuron::alpha;
+						myCurrentLearntNet = myNet;
+					}
 
-				if (recentAverageError >= 0.05)
-					recordTrainingPass = true;
-				else
-					recordTrainingPass = false;
+					if (recentAverageError >= 0.05)
+						recordTrainingPass = true;
+					else
+						recordTrainingPass = false;
+
+					if (printOut)
+						cout << "Record training pass: " 
+						<< recordTrainingPass << endl;
+
+				} // while training data
 
 				if (printOut)
-					cout << "Record training pass: " 
-						<< recordTrainingPass << endl;
-			} // while training data
-	
-			cout << ":Learning was completed on Training Pass:" << learnEndIteration << endl;
-			//cout << "Done. " << endl;
+					cout << ":Learning was completed on Training Pass:" << currentLearnIteration << endl;
 
-		} // loop alpha
-	} // loop eta
+				if (currentLearnIteration < bestAlphaIt) {
+					bestAlphaIt = currentLearnIteration;
+					bestAlpha_ETA = currentETA;
+					bestAlpha_ALPHA = currentALPHA;
+					myBestAlphaLeantNet = myCurrentLearntNet;
 
+					if (printOut) {
+						cout << "Update bestAlphaIt ..." << endl;
+						cout << "- bestAlphaIt: " << bestAlphaIt 
+							<< "- bestAlpha_ETA: " << bestAlpha_ETA 
+							<< "- bestAlpha_ALPHA: " << bestAlpha_ALPHA 
+							<< endl; 
+					}
+				}
+
+			} // loop alpha
+
+			if (bestAlphaIt < bestLearnIteration) {
+				bestLearnIteration = bestAlphaIt;
+				bestETA = bestAlpha_ETA;
+				bestALPHA = bestAlpha_ALPHA;
+				myBestLearntNet = myCurrentLearntNet;
+
+				if (printOut) {
+					cout << "Update bestLearnIteration ..." << endl;
+					cout << "- bestLearnIteration: " << bestLearnIteration 
+						<< "- bestETA: " << bestETA 
+						<< "- bestALPHA: " << bestALPHA 
+						<< endl;
+				}
+			}
+
+			bestAlphaIt = UINT_MAX;
+		} // loop eta
+
+		cout << endl;
+		cout << "Learning Done" << endl << endl;
+
+		cout << "- bestLearnIteration: " << bestLearnIteration 
+			<< "- bestETA: " << bestETA 
+			<< "- bestALPHA: " << bestALPHA 
+			<< endl; 
+
+		myBestLearntNet.printNetwork(topo, bestETA, bestALPHA, learningFile);
+	}
+	else if (nNmode.compare("execute") == 0) {
+		printOut = true;
+
+		vector<unsigned> topology;
+		std::vector<double> inputVals, targetVals, resultVals;
+		int trainingPass = 0;
+
+		Net myNet(topology, learningFile, true);
+
+		TrainingData trainData(trainingFile);
+		vector<unsigned> trainTopology;
+		trainData.getTopology(trainTopology);
+
+		assert(topology == trainTopology);
+		
+		while (!trainData.isEof()) {
+			++trainingPass;
+
+			double recentAverageError = 0.0;
+
+			if (printOut) 
+				cout << endl << "Pass " << trainingPass <<  endl;
+
+			// Get new input data and feed it forward;
+			if (trainData.getNextInputs(inputVals) != topology[0]) {
+				break;
+			}
+			trainData.showVectorVals(": Inputs:", inputVals, printOut);
+			myNet.feedForward(inputVals);
+
+			// Collect the net's actual results:
+			myNet.getResuls(resultVals);
+			trainData.showVectorVals(": Outputs:", resultVals, printOut);
+
+			// Get Target output val
+			trainData.getTargetOutputs(targetVals);
+			trainData.showVectorVals(": Targets:", targetVals, printOut);
+			assert(targetVals.size() == topology.back());
+
+			double delta = targetVals[targetVals.size()-1] - resultVals[targetVals.size()-1];
+
+			// report how well the training is working, averaged over recent samples:
+			if (printOut)
+				cout << "Net Absolute error: "
+				<< delta << endl;
+		}
+
+	}
 }
 
 /*
 int main()
 {
-	// e.g.,  {3, 2, 1}
-	std::vector<unsigned> topology;
-	topology.push_back(3);
-	topology.push_back(2);
-	topology.push_back(1);
-	Net myNet(topology);
+// e.g.,  {3, 2, 1}
+std::vector<unsigned> topology;
+topology.push_back(3);
+topology.push_back(2);
+topology.push_back(1);
+Net myNet(topology);
 
-	std::vector<double> inputVals;
-	myNet.feedForward(inputVals);
+std::vector<double> inputVals;
+myNet.feedForward(inputVals);
 
-	std::vector<double> targetVals;
-	myNet.backProp(targetVals);
+std::vector<double> targetVals;
+myNet.backProp(targetVals);
 
-	std::vector<double> resultVals;
-	myNet.getResuls(resultVals);
+std::vector<double> resultVals;
+myNet.getResuls(resultVals);
 }
 */
 
 /*
 int _tmain(int argc, _TCHAR* argv[])
 {
-	return 0;
+return 0;
 }
 */

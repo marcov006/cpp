@@ -9,7 +9,11 @@ class Neuron;
 class Net
 {
 public:
-	Net(const vector<unsigned> &topology);
+	//Net(const vector<unsigned> &topology);
+	Net(vector<unsigned> &topology, const string networkWeightsfilename, bool execute);
+	Net(vector<unsigned> &topology, const string filename);
+	
+	void printNetwork(const vector<unsigned> &topology, const double eta, const double alpha, const string learningFile);
 	void feedForward(const std::vector<double> &inputVals);
 	void backProp(const std::vector<double> &targetVals);
 	void getResuls(std::vector<double> &resultVals) const;
@@ -20,6 +24,12 @@ private:
 	double m_error;
 	double m_recentAverageError;
 	double m_recentAverageSmoothingFactor;
+		
+	void setNetworkWeights(const vector<unsigned> &topology);
+	void getNetworkWeights(unsigned layerNum, unsigned neuronNum, unsigned connectionNum, Connection &connection);
+	unsigned getTopology(vector<unsigned> &topology);
+	bool isEof(void);
+	void LearningData(const string filename);
 };
 
 #endif

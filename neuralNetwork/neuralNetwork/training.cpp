@@ -71,10 +71,9 @@ unsigned TrainingData::getTargetOutputs(vector<double> &targetOutputVals)
 	return targetOutputVals.size();
 }
 
-TrainingData::TrainingData(const string filename, const string filename2)
+TrainingData::TrainingData(const string filename)
 {
 	m_trainingDataFile.open(filename);
-	m_learningDataFile.open(filename2);
 
 	//if (m_trainingDataFile.is_open())
 		//cout << "ok. " << endl;
@@ -91,13 +90,10 @@ void TrainingData::showVectorVals(string label, vector<double> &v, bool printOut
 {
 	if (printOut) {
 		cout << label << " ";
-		m_learningDataFile << label << " " << endl;
-
+		
 		for (unsigned i = 0; i < v.size(); i++) {
 			cout << v[i] << " ";
-			m_learningDataFile << v[i] << " ";
 		}
 		cout << endl;
-		m_learningDataFile << endl;
 	}
 }

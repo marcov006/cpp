@@ -13,9 +13,9 @@
 #include <cassert>
 
 #include "defs.h"
-#include "training.h"
 #include "neuron.h"
 #include "net.h"
+#include "training.h"
 
 using namespace std;
 

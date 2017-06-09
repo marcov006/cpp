@@ -7,7 +7,7 @@ using namespace std;
 class TrainingData
 {
 public:
-	TrainingData(const string filename, const string filename2);
+	TrainingData(const string filename);
 	bool isEof(void);
 	unsigned getTopology(vector<unsigned> &topology);
 
@@ -18,7 +18,6 @@ public:
 
 private:
 	ifstream m_trainingDataFile;
-	ofstream m_learningDataFile;
 };
 
 #endif
