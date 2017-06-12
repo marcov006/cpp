@@ -7,30 +7,7 @@
 #include "neuron.h"
 #include "net.h"
 
-//unsigned getTopology(vector<unsigned> &topology, const string filename)
-//{
-//string line;
-//string label;
-
-//ifstream m_learningFile;
-//m_learningFile.open(filename);
-
-//getline(m_learningFile, line);
-//stringstream ss(line);
-//ss >> label;
-
-//if (label.compare("topology:") != 0) {
-//	abort();	
-//}
-
-//while (!ss.eof()) {			
-//	unsigned n;
-//	ss >> n;
-//	topology.push_back(n);
-//}
-//	
-//return topology.size();
-//}
+using namespace std;
 
 int main(int argc, char *argv[])
 {
@@ -43,14 +20,33 @@ int main(int argc, char *argv[])
 
 	trainingFile = "C:\\temp\\trainingData.txt";
 	learningFile = "C:\\temp\\NeuralNetworkTrainingSequence.txt";
+	
+	Neuron::eta = 0.05;
+	Neuron::alpha = 0.8;
 
 	if (argc > 1) {
 		for (int i = 0; i < argc; i++) {
-			cout << "argc: " << i << endl;
+			std::cout << "argc: " << i << endl;
 			cout << "argv: " << argv[i] << endl;
+
+			string arg_s = argv[i]; 
+			if ((arg_s.compare("-h") == 0) || (arg_s.compare("-help") == 0)) {
+				cout << "Help Menu: " << endl;
+				cout << "\t# -f1 : specify the training file to learn/execute the Neural Network [default: C:\\temp\\trainingData.txt]" << endl;
+				cout << "\t# -f2 : specify the learning file to store the best weights [default: C:\\temp\\NeuralNetworkTrainingSequence.txt]" << endl;
+				cout << "\t# -eta : fix the ETA value, usefull with oneshot=y [default Neuron::eta=" << Neuron::eta << "]" << endl;
+				cout << "\t# -alpha : fix the ALPHA value, usefull with oneshot=y [default Neuron::alpha=" << Neuron::alpha << "]" << endl;
+				cout << "\t# -mode : train or execute the Neural Network. Both needs training and learning file. [training (default) /execute]" << endl;
+				cout << "\t# -print : verbose or not [y/n(default)] " << endl;
+				cout << "\t# -oneshot : train the network for a single set of eta and alpha or not [y/n(default)] " << endl;
+				return 0;
+			}
 		}
-		for (int i = 1; i < argc-1; i++) {
+		for (int i = 1; i < argc-1; i+=2) {
 			string arg_s = argv[i];
+
+			cout << "arg_s: " << arg_s << endl;
+
 			if (arg_s.compare("-f1") == 0) {
 				trainingFile = argv[i+1];
 				cout << "trainingFile: " << trainingFile << endl;
@@ -99,14 +95,36 @@ int main(int argc, char *argv[])
 					printOut = false;
 
 			}
+			else if (arg_s.compare("-oneshot") == 0) {
+				string oneshot = (string)argv[i+1];
+				cout << "oneshot: " << oneshot << endl;
+
+				if ((oneshot.compare("y") != 0) && (oneshot.compare("n") != 0)) {
+					cout << "enter a valid value for -oneshot (y or n) : " << endl;					
+					cin >> oneshot;
+					if ((oneshot.compare("y") != 0) && (oneshot.compare("n") != 0)) {
+						cout << "t'es vraiment con, je peux plus rien pour toi ! Hasta luego" << endl;
+						return 0;
+					}
+				}
+				if (oneshot.compare("y") == 0)
+					singleShot = true;
+				else
+					singleShot = false;
+			}
 			else {
-				// cout << "option : " << arg_s << " does not exist" << endl;
+				cout << "option : " << arg_s << " does not exist" << endl;
+				cout << "Help Menu: " << endl;
+				cout << "\t# -f1 : specify the training file to learn/execute the Neural Network [default: C:\\temp\\trainingData.txt]" << endl;
+				cout << "\t# -f2 : specify the learning file to store the best weights [default: C:\\temp\\NeuralNetworkTrainingSequence.txt]" << endl;
+				cout << "\t# -eta : fix the ETA value, usefull with oneshot=y [default Neuron::eta=" << Neuron::eta << "]" << endl;
+				cout << "\t# -alpha : fix the ALPHA value, usefull with oneshot=y [default Neuron::alpha=" << Neuron::alpha << "]" << endl;
+				cout << "\t# -mode : train or execute the Neural Network. Both needs training and learning file. [training (default) /execute]" << endl;
+				cout << "\t# -print : verbose or not [y/n(default)] " << endl;
+				cout << "\t# -oneshot : train the network for a single set of eta and alpha or not [y/n(default)] " << endl;
+				return 0;
 			}
 		}
-	} else {
-		trainingFile = "C:\\temp\\trainingData.txt";
-		learningFile = "C:\\temp\\NeuralNetworkTrainingSequence.txt";
-		nNmode = "training";
 	}
 
 	cout << "mode: " << nNmode << endl;
@@ -131,15 +149,14 @@ int main(int argc, char *argv[])
 			vector<unsigned> topo;
 			tData.getTopology(topo);
 
-			Net myCurrentLearntNet(topo, "nofile", false);
-			Net myBestAlphaLeantNet(topo, "nofile", false);
+			Net myBestAlphaLearntNet(topo, "nofile", false);
 			Net myBestLearntNet(topo, "nofile", false);
 
 			cout << "Learning .";
 
-			for (double i = 0.0; i < 10.0; i++) {
+			for (double i = 0.0; i < 21.0; i++) { // eta loop
 				cout << ".";
-				for (double j = 0.0; j < 20.0; j++) {
+				for (double j = 0.0; j < 21.0; j++) { // alpha loop
 					TrainingData trainData(trainingFile);			
 
 					Neuron::eta = i*0.05;
@@ -206,11 +223,7 @@ int main(int argc, char *argv[])
 							recordTrainingPass = true;
 						else
 							recordTrainingPass = false;
-
-						// Continuously save the current Neural Network
-						// The one that learnt the faster, will have its final weights saved for further usage.
-						myCurrentLearntNet = myNet;
-
+						
 						if (printOut)
 							cout << "Record training pass: " 
 							<< recordTrainingPass << endl;
@@ -224,7 +237,7 @@ int main(int argc, char *argv[])
 						bestAlphaIt = currentLearnIteration;
 						bestAlpha_ETA = currentETA;
 						bestAlpha_ALPHA = currentALPHA;
-						myBestAlphaLeantNet = myCurrentLearntNet;
+						myBestAlphaLearntNet = myNet;
 
 						if (printOut) {
 							cout << "Update bestAlphaIt ..." << endl;
@@ -234,14 +247,13 @@ int main(int argc, char *argv[])
 								<< endl; 
 						}
 					}
-
 				} // loop alpha
 
 				if (bestAlphaIt < bestLearnIteration) {
 					bestLearnIteration = bestAlphaIt;
 					bestETA = bestAlpha_ETA;
 					bestALPHA = bestAlpha_ALPHA;
-					myBestLearntNet = myCurrentLearntNet;
+					myBestLearntNet = myBestAlphaLearntNet;
 
 					if (printOut) {
 						cout << "Update bestLearnIteration ..." << endl;
@@ -267,11 +279,6 @@ int main(int argc, char *argv[])
 		}
 
 		if (singleShot) {
-
-			printOut = false;
-
-			Neuron::eta = 0.05;
-			Neuron::alpha = 0.80;
 
 			if (printOut) {
 				cout << ":eta:" << Neuron::eta ;
@@ -335,12 +342,11 @@ int main(int argc, char *argv[])
 					cout << "Record training pass: " 
 					<< recordTrainingPass << endl;
 			}
-			if (printOut)
-				cout << ":Learning was completed on Training Pass:" << currentLearnIteration << endl;
+			cout << ":Learning was completed on Training Pass:" << currentLearnIteration << endl;
 
 			myNet.printNetwork(topology, Neuron::eta,Neuron::alpha,learningFile);
 		}
-	}
+	} // if(training)
 	else if (nNmode.compare("execute") == 0) {
 	
 		vector<unsigned> topology;
@@ -386,11 +392,13 @@ int main(int argc, char *argv[])
 				cout << "Net Absolute error: "
 				<< delta << endl;
 
-			if (delta > 0.05)
-				abort();
+			if (abs(delta) > 0.05) {
+				cout << "Net Absolute error ABOVE the threshold fixed during the learning sequence : " << delta << endl;
+				return 0;
+			}
 		}
-
-	}
+	} // if (execute)
+	return 0;
 }
 
 /*
